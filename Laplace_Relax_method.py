@@ -1,10 +1,7 @@
-#Resolviendo la ecuación de Laplace método-relajación( Tarea 3 EM1 Uniandes)
-#by : Juan Camilo Reales Crespo
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-def laplace_relaxation(N, M, dx, dy, V0, tolerance=1e-5, max_iterations=10000):
+def laplace_relaxation(N, M, dx, dy, V0_func, boundary_params, tolerance=1e-5, max_iterations=10000):
     """
     Resuelve la ecuación de Laplace utilizando el método de relajación.
 
@@ -13,7 +10,8 @@ def laplace_relaxation(N, M, dx, dy, V0, tolerance=1e-5, max_iterations=10000):
     - M (int): Número de puntos de la red en la dirección y.
     - dx (float): Paso en la dirección x.
     - dy (float): Paso en la dirección y.
-    - V0 (function): Función de condiciones de frontera V0(x, y).
+    - V0_func (function): Función de condiciones de frontera V0(x, y).
+    - boundary_params (dict): Parámetros necesarios para la función V0_func.
     - tolerance (float, opcional): Tolerancia para la convergencia. Valor predeterminado es 1e-5.
     - max_iterations (int, opcional): Número máximo de iteraciones. Valor predeterminado es 10000.
 
@@ -25,11 +23,11 @@ def laplace_relaxation(N, M, dx, dy, V0, tolerance=1e-5, max_iterations=10000):
 
     # Condiciones de frontera
     for i in range(N):
-        V[i, 0] = V0(i*dx, 0)  # borde inferior
-        V[i, -1] = V0(i*dx, b)  # borde superior
+        V[i, 0] = V0_func(i*dx, 0, **boundary_params)  # borde inferior
+        V[i, -1] = V0_func(i*dx, dy*(M-1), **boundary_params)  # borde superior
     for j in range(M):
-        V[0, j] = V0(0, j*dy)  # borde izquierdo
-        V[-1, j] = V0(a, j*dy)  # borde derecho
+        V[0, j] = V0_func(0, j*dy, **boundary_params)  # borde izquierdo
+        V[-1, j] = V0_func(dx*(N-1), j*dy, **boundary_params)  # borde derecho
 
     # Iteraciones hasta convergencia
     for _ in range(max_iterations):
@@ -44,23 +42,29 @@ def laplace_relaxation(N, M, dx, dy, V0, tolerance=1e-5, max_iterations=10000):
 
     return V
 
-def V0(x, y):
+def V0(x, y, V0_bottom, V0_top, V0_left, V0_right):
     """
     Define las condiciones de frontera V0(x, y).
 
     Parámetros:
     - x (float): Coordenada en x.
     - y (float): Coordenada en y.
+    - V0_bottom (float): Valor en el borde inferior (y=0).
+    - V0_top (float): Valor en el borde superior (y=b).
+    - V0_left (float): Valor en el borde izquierdo (x=0).
+    - V0_right (float): Valor en el borde derecho (x=a).
 
     Retorna:
     - float: Valor del potencial en el punto (x, y).
     """
-    if x == 0 or x == a:
-        return 0
+    if x == 0:
+        return V0_left
+    elif x == a:
+        return V0_right
     elif y == 0:
-        return -v0
+        return V0_bottom
     elif y == b:
-        return v0
+        return V0_top
     else:
         return 0 #para puntos dentro del dominio D
 
@@ -72,16 +76,29 @@ if __name__ == "__main__":
     dy = float(input("Ingrese el paso en la dirección y: "))
     a = N * dx  # longitud en x
     b = M * dy  # longitud en y
-    v0 = float(input("Ingrese el valor de V0: "))
+
+    # Condiciones de frontera
+    V0_bottom = float(input("Ingrese el valor de V0 en el borde inferior: "))
+    V0_top = float(input("Ingrese el valor de V0 en el borde superior: "))
+    V0_left = float(input("Ingrese el valor de V0 en el borde izquierdo: "))
+    V0_right = float(input("Ingrese el valor de V0 en el borde derecho: "))
+
+    boundary_params = {
+        'V0_bottom': V0_bottom,
+        'V0_top': V0_top,
+        'V0_left': V0_left,
+        'V0_right': V0_right
+    }
 
     # Resolución del problema
-    V = laplace_relaxation(N, M, dx, dy, V0)
+    V = laplace_relaxation(N, M, dx, dy, V0, boundary_params)
     print(V)
 
-    # Calcular el promedio de los potenciales en toda la malla
+# Calcular el promedio de los potenciales en toda la malla
     promedio_potencial = np.mean(V)
     print("El valor final del potencial promedio es:", promedio_potencial)
 
+    # Visualización de la solución (opcional)
     x = np.linspace(0, a, N)
     y = np.linspace(0, b, M)
     X, Y = np.meshgrid(x, y)
@@ -92,8 +109,6 @@ if __name__ == "__main__":
     plt.ylabel('y')
     plt.title('Solución ec. Laplace Método de relajación (2D)')
     plt.show()
-
-
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
