@@ -78,10 +78,10 @@ if __name__ == "__main__":
     b = M * dy  # longitud en y
 
     # Condiciones de frontera
-    V0_bottom = float(input("Ingrese el valor de V0 en el borde inferior: "))
-    V0_top = float(input("Ingrese el valor de V0 en el borde superior: "))
-    V0_left = float(input("Ingrese el valor de V0 en el borde izquierdo: "))
-    V0_right = float(input("Ingrese el valor de V0 en el borde derecho: "))
+    V0_bottom = float(input("Ingrese el valor de V0 en el borde inferior (y=0): "))
+    V0_top = float(input("Ingrese el valor de V0 en el borde superior (y=b): "))
+    V0_left = float(input("Ingrese el valor de V0 en el borde izquierdo (x=0): "))
+    V0_right = float(input("Ingrese el valor de V0 en el borde derecho (x=a): "))
 
     boundary_params = {
         'V0_bottom': V0_bottom,
